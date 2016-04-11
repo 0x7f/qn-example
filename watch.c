@@ -22,29 +22,19 @@ static void subscribe_to_query(SQLHANDLE conHandle, SQLCHAR* query) {
         exit(1);
     }
 
-    /* If you want to leave the query notification timeout set to its default (5 days), omit this line. */
-    // TODO: re-subscribe before timeout occures
-    // Notifications are sent only once. For continuous notification of data change, a new subscription
-    // must be created by re-executing the query after each notification is processed.
-    ret = SQLSetStmtAttr(hStmt, SQL_SOPT_SS_QUERYNOTIFICATION_TIMEOUT, "1", SQL_NTS);
+    ret = SQLSetStmtAttr(hStmt, SQL_SOPT_SS_QUERYNOTIFICATION_TIMEOUT, (SQLPOINTER)SUBSCRIPTION_TIMEOUT, SQL_IS_UINTEGER);
     if (!SQL_SUCCEEDED(ret)) {
         extract_error("SQLSetStmtAttr SQL_SOPT_SS_QUERYNOTIFICATION_TIMEOUT", hStmt, SQL_HANDLE_STMT);
         exit(1);
     }
 
-    /* We want to know if the data returned by running this query changes. */
-    /* Not all queries are compatible with query notifications. Refer to */
-    /* the SQL Server documentation for further information: */
-    /* http://technet.microsoft.com/en-us/library/ms181122(v=sql.105).aspx */
     ret = SQLExecDirect(hStmt, query, SQL_NTS);
     if (!SQL_SUCCEEDED(ret)) {
         extract_error("SQLExecDirect", hStmt, SQL_HANDLE_STMT);
         exit(1);
     }
 
-    SQLSMALLINT cols;
-    ret = SQLNumResultCols(hStmt, &cols);
-    printf("cols = %d %d\n", cols, ret);
+    //print_query_result(hStmt);
 
     SQLFreeHandle(SQL_HANDLE_STMT, hStmt);
 }
@@ -52,9 +42,6 @@ static void subscribe_to_query(SQLHANDLE conHandle, SQLCHAR* query) {
 static void wait_for_notification(SQLHANDLE conHandle) {
     SQLRETURN ret;
     SQLHANDLE hStmt;
-    SQLSMALLINT cols;
-    SQLCHAR buffer[4096];
-    SQLLEN len;
 
     ret = SQLAllocHandle(SQL_HANDLE_STMT, conHandle, &hStmt);
     if (!SQL_SUCCEEDED(ret)) {

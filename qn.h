@@ -16,6 +16,7 @@ static SQLCHAR szDSN[] = "MY_ODBC_DRIVER_NAME";
 static SQLCHAR szUser[] = "username";
 static SQLCHAR szPass[] = "password";
 static SQLCHAR szSubscribeQuery[] = "SELECT sessionId, sessionData, lastTouchedUtc FROM dbo.Session WHERE sessionId IS NOT NULL";
+static SQLUINTEGER SUBSCRIPTION_TIMEOUT = 60;
 
 static void extract_error(char *fn, SQLHANDLE handle, SQLSMALLINT type) {
     SQLSMALLINT	 i = 0;
