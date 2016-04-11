@@ -55,7 +55,7 @@ static void wait_for_notification(SQLHANDLE conHandle) {
         exit(1);
     }
 
-    //print_query_result(hStmt);
+    print_query_result(hStmt);
 
     SQLFreeHandle(SQL_HANDLE_STMT, hStmt);
 }
