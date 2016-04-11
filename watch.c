@@ -49,18 +49,58 @@ static void wait_for_notification(SQLHANDLE conHandle) {
         exit(1);
     }
     
-    /* This query retrieves the query notification message. */
-    /* It will block until the timeout expires or the query's underlying */
-    /* data changes. */
     ret = SQLExecDirect(hStmt, "WAITFOR (RECEIVE * FROM SessionChangeMessages)", SQL_NTS);
     if (!SQL_SUCCEEDED(ret)) {
         extract_error("WAITFOR", hStmt, SQL_HANDLE_STMT);
         exit(1);
     }
 
-    print_query_result(hStmt);
+    //print_query_result(hStmt);
 
     SQLFreeHandle(SQL_HANDLE_STMT, hStmt);
+}
+
+static int receive_queue_nowait(SQLHANDLE conHandle) {
+    SQLRETURN ret;
+    SQLHANDLE hStmt;
+
+    ret = SQLAllocHandle(SQL_HANDLE_STMT, conHandle, &hStmt);
+    if (!SQL_SUCCEEDED(ret)) {
+        extract_error("SQLAllocStmt hStmt", conHandle, SQL_HANDLE_DBC);
+        exit(1);
+    }
+
+    ret = SQLExecDirect(hStmt, "RECEIVE * FROM SessionChangeMessages", SQL_NTS);
+    if (!SQL_SUCCEEDED(ret)) {
+        extract_error("WAITFOR", hStmt, SQL_HANDLE_STMT);
+        exit(1);
+    }
+
+    int numRows = 0;
+
+    while (1) {
+        ret = SQLFetch(hStmt);
+        if (SQL_SUCCEEDED(ret)) {
+            continue;
+        }
+        else if (ret == SQL_NO_DATA) {
+            break;
+        }
+        else {
+            extract_error("SQLFetch", hStmt, SQL_HANDLE_STMT);
+            exit(1);
+        }
+    }
+
+    SQLFreeHandle(SQL_HANDLE_STMT, hStmt);
+
+    return numRows;
+}
+
+static void clear_query_notification_queue(SQLHANDLE conHandle) {
+    while (receive_queue_nowait(conHandle) > 0) {
+        // no-op
+    }
 }
 
 int main() {
@@ -69,7 +109,7 @@ int main() {
     connect_to_db(&envHandle, &conHandle);
 
     while (1) {
-        printf(">>>>>>>>>>>>>>> SUBSCRIBING\n");
+        clear_query_notification_queue(conHandle);
         subscribe_to_query(conHandle, szSubscribeQuery);
         wait_for_notification(conHandle);
     }
