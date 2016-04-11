@@ -21,6 +21,14 @@ GRANT RECEIVE ON SessionChangeMessages TO "vistra"
 GRANT SUBSCRIBE QUERY NOTIFICATIONS TO "vistra";
 ```
 
+## Useful SQL queries
+
+List current subscriptions:
+
+```
+SELECT * FROM sys.dm_qn_subscriptions;
+```
+
 Kill all running subscriptions:
 
 ```
