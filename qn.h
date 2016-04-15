@@ -171,3 +171,7 @@ static void exec_query(SQLHANDLE conHandle, SQLCHAR* szQuery) {
 
     SQLFreeHandle(SQL_HANDLE_STMT, hStmt);
 }
+
+inline void disable_buffering(FILE* f) {
+    setvbuf(f, NULL, _IONBF, 0);
+}

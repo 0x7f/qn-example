@@ -98,12 +98,15 @@ static int receive_queue_nowait(SQLHANDLE conHandle) {
 }
 
 static void clear_query_notification_queue(SQLHANDLE conHandle) {
+    printf("clearing queue\n");
     while (receive_queue_nowait(conHandle) > 0) {
         // no-op
     }
 }
 
 int main() {
+    disable_buffering(stdout);
+
     SQLHANDLE envHandle;
     SQLHANDLE conHandle;
     connect_to_db(&envHandle, &conHandle);

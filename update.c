@@ -1,6 +1,8 @@
 #include "qn.h"
 
 int main() {
+    disable_buffering(stdout);
+
     SQLHANDLE envHandle;
     SQLHANDLE conHandle;
     connect_to_db(&envHandle, &conHandle);
